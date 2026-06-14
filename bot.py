@@ -1,3 +1,5 @@
+from flask import Flask
+import threading
 import asyncio, logging
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, F
@@ -375,10 +377,23 @@ async def back_main(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Главное меню:", reply_markup=main_menu(callback.from_user.id))
     await callback.answer()
 
+app = Flask(__name__)
+
+@app.route('/')
+def health():
+    return 'OK', 200
+
+def run_web():
+    app.run(host='0.0.0.0', port=10000)
+
 async def main():
     await init_db()
     scheduler.start()
+    threading.Thread(target=run_web, daemon=True).start()
     await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
 
 if __name__ == "__main__":
     asyncio.run(main())
